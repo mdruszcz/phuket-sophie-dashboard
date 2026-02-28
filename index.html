@@ -184,11 +184,17 @@ function parseGoogle(hourlyJson, dailyJson){
   const dates = Object.keys(dayMap).sort();
   dates.forEach(date => {
     const hrs = dayMap[date].sort((a,b) => a.hour - b.hour);
-    // Fill missing hours
+    if(hrs.length < 6) return; // Skip days with very few hours
+    // Fill missing hours using nearest known data
     const full = [];
     for(let h=0; h<24; h++){
       const existing = hrs.find(x => x.hour === h);
-      full.push(existing || {hour:h, temp:0, humidity:0, uv:0, apparent:0, precip:0, wc:'', safety:'safe'});
+      if(existing){ full.push(existing); }
+      else {
+        // Find nearest known hour
+        const nearest = hrs.reduce((a,b) => Math.abs(b.hour-h) < Math.abs(a.hour-h) ? b : a);
+        full.push({...nearest, hour:h});
+      }
     }
     const temps = full.map(h=>h.temp).filter(t=>t>0);
     const dailyMatch = dailyDays.find(d => {
@@ -229,18 +235,28 @@ const EMBEDDED={"hourly":{"time":["2026-02-28T00:00","2026-02-28T01:00","2026-02
 
 // ======== DATA LOADING (cascading: Google → Open-Meteo → Embedded) ========
 async function init(){
-  // 1) Try Google Weather API
+  // 1) Try Google Weather API (with pagination for full 7 days)
   try {
-    const [hRes, dRes] = await Promise.all([
-      fetch(`https://weather.googleapis.com/v1/forecast/hours:lookup?key=${GOOGLE_KEY}&location.latitude=7.88&location.longitude=98.39&hours=168`),
-      fetch(`https://weather.googleapis.com/v1/forecast/days:lookup?key=${GOOGLE_KEY}&location.latitude=7.88&location.longitude=98.39&days=7`)
-    ]);
-    if(hRes.ok && dRes.ok){
-      const [hJson, dJson] = await Promise.all([hRes.json(), dRes.json()]);
-      fd = {days: parseGoogle(hJson, dJson), at: new Date().toLocaleString('en-GB',{timeZone:'Asia/Bangkok'})};
-      dataSource = 'google';
-      return renderAll();
+    // Fetch daily forecast
+    const dRes = await fetch(`https://weather.googleapis.com/v1/forecast/days:lookup?key=${GOOGLE_KEY}&location.latitude=7.88&location.longitude=98.39&days=7`);
+    if(!dRes.ok) throw new Error('Daily: '+dRes.status);
+    const dJson = await dRes.json();
+
+    // Fetch hourly with pagination
+    let allHours = [];
+    let url = `https://weather.googleapis.com/v1/forecast/hours:lookup?key=${GOOGLE_KEY}&location.latitude=7.88&location.longitude=98.39&hours=168`;
+    for(let page=0; page<5; page++){
+      const hRes = await fetch(url);
+      if(!hRes.ok) throw new Error('Hourly: '+hRes.status);
+      const hJson = await hRes.json();
+      if(hJson.forecastHours) allHours = allHours.concat(hJson.forecastHours);
+      if(!hJson.nextPageToken) break;
+      url = `https://weather.googleapis.com/v1/forecast/hours:lookup?key=${GOOGLE_KEY}&location.latitude=7.88&location.longitude=98.39&hours=168&pageToken=${hJson.nextPageToken}`;
     }
+
+    fd = {days: parseGoogle({forecastHours: allHours}, dJson), at: new Date().toLocaleString('en-GB',{timeZone:'Asia/Bangkok'})};
+    dataSource = 'google';
+    return renderAll();
   } catch(e){ console.log('Google Weather failed:', e.message); }
 
   // 2) Try Open-Meteo
