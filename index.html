@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Phuket March — Sophie's Safety Dashboard</title>
+<title>Heat Safety Dashboard — Live Forecast</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
@@ -12,11 +12,25 @@
   body{background:var(--bg);color:var(--txt);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
   #three-bg{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;opacity:.3}
   .app{position:relative;z-index:1;max-width:1400px;margin:0 auto;padding:40px 24px 80px}
-  .header{text-align:center;margin-bottom:48px;animation:fadeUp 1s ease-out}
+  .header{text-align:center;margin-bottom:32px;animation:fadeUp 1s ease-out}
   .header-label{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:4px;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
-  .header h1{font-family:'Playfair Display',serif;font-size:clamp(36px,6vw,64px);font-weight:900;background:linear-gradient(135deg,#fff 0%,#a78bfa 50%,#f77062 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1.1;margin-bottom:12px}
-  .header-sub{font-size:16px;color:var(--txt2);font-weight:300;max-width:660px;margin:0 auto}
-  .header-sub strong{color:var(--safe);font-weight:600}
+  .header h1{font-family:'Playfair Display',serif;font-size:clamp(36px,6vw,64px);font-weight:900;background:linear-gradient(135deg,#fff 0%,#a78bfa 50%,#f77062 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1.1;margin-bottom:0}
+  .live-status{display:flex;align-items:center;justify-content:center;gap:16px;margin:20px auto 0;padding:14px 24px;background:var(--glass);border:1px solid rgba(255,255,255,.08);border-radius:16px;max-width:700px;flex-wrap:wrap}
+  .ls-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;animation:pulse 2s infinite}
+  .ls-temp{font-family:'Playfair Display',serif;font-size:32px;font-weight:900}
+  .ls-label{font-size:13px;color:var(--txt2)}
+  .ls-divider{width:1px;height:28px;background:rgba(255,255,255,.1)}
+  .ls-item{display:flex;align-items:center;gap:8px}
+  .ls-val{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600}
+  .loc-wrap{display:flex;align-items:center;justify-content:center;gap:12px;margin:20px auto 0;max-width:600px;flex-wrap:wrap}
+  .loc-input{flex:1;min-width:200px;padding:12px 16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;color:var(--txt);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:all .3s}
+  .loc-input:focus{border-color:var(--accent);background:rgba(124,92,252,.08)}
+  .loc-input::placeholder{color:var(--dim)}
+  .loc-btn{padding:12px 20px;background:linear-gradient(135deg,var(--accent),#a78bfa);border:none;border-radius:12px;color:#fff;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .3s;white-space:nowrap}
+  .loc-btn:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(124,92,252,.3)}
+  .loc-btn:disabled{opacity:.5;cursor:wait}
+  .loc-current{padding:12px 16px;background:var(--glass);border:1px solid rgba(45,212,168,.2);border-radius:12px;color:var(--safe);font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;transition:all .3s;white-space:nowrap}
+  .loc-current:hover{border-color:var(--safe);background:rgba(45,212,168,.08)}
   .stitle{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:#fff;margin-bottom:4px}
   .ssub{font-size:12px;color:var(--dim);font-family:'JetBrains Mono',monospace;letter-spacing:1px;margin-bottom:24px}
   .live-dot{display:inline-block;width:8px;height:8px;background:var(--safe);border-radius:50%;margin-left:10px;vertical-align:middle;animation:pulse 2s infinite}
@@ -89,9 +103,14 @@
 <div id="tip" class="tooltip"></div>
 <div class="app">
   <header class="header">
-    <div class="header-label">Family Travel Intelligence · Live Forecast</div>
-    <h1>Phuket in March</h1>
-    <p class="header-sub">Real-time weather forecast & <strong>Sophie-safe</strong> activity windows for your 9-month-old — based on AAP heat index guidelines</p>
+    <div class="header-label">Heat Safety Dashboard · Live Forecast</div>
+    <h1>Heat Index Monitor</h1>
+    <div class="live-status" id="live-status" style="display:none"></div>
+    <div class="loc-wrap">
+      <input type="text" class="loc-input" id="loc-input" placeholder="Enter city or location…" value="">
+      <button class="loc-btn" id="loc-btn" onclick="searchLocation()">Search</button>
+      <button class="loc-current" onclick="useMyLocation()">📍 My Location</button>
+    </div>
   </header>
   <div class="card">
     <div class="stitle">Live 7-Day Forecast <span class="live-dot"></span> <span id="src-badge" class="src-badge"></span></div>
@@ -131,13 +150,13 @@
     <div class="cw" id="avg-chart"></div>
   </div>
   <div class="card">
-    <div class="stitle">Best Activities by Time of Day</div>
-    <div class="ssub">Optimized for Sophie's comfort & safety</div>
+    <div class="stitle">Activity Guide by Time of Day</div>
+    <div class="ssub">Optimized for heat safety</div>
     <div class="agrid" id="acts"></div>
   </div>
   <footer class="footer">
     Primary: <a href="https://mapsplatform.google.com/maps-products/weather/" target="_blank">Google Weather API</a> · Fallback: <a href="https://open-meteo.com/" target="_blank">Open-Meteo</a> (CC BY 4.0) · Safety: AAP Guidelines<br>
-    Auto-refreshes on every page load 🌴 Phuket 2026
+    Auto-refreshes on every page load 🌡️
   </footer>
 </div>
 <script>
@@ -154,11 +173,78 @@ function gS(hi,uv){if(hi>=32)return'danger';if(hi>=29)return'caution';return'saf
 function sC(s){return s==='danger'?'var(--danger)':s==='caution'?'var(--caution)':'var(--safe)'}
 function sE(s){return s==='danger'?'🔴 DANGER':s==='caution'?'🟡 CAUTION':'🟢 SAFE'}
 function fD(ds){return new Date(ds+'T00:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})}
-function isToday(ds){return ds===new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Bangkok'})}
+function isToday(ds){return ds===new Date().toLocaleDateString('en-CA',{timeZone:LOC.tz})}
 function wI(c){if(c<=1)return'☀️';if(c<=3)return'⛅';if(c<=48)return'🌫️';if(c<=67)return'🌧️';if(c<=77)return'🌨️';if(c<=82)return'🌦️';if(c>=95)return'⛈️';return'🌤️'}
 
 const GOOGLE_KEY = 'AIzaSyDrV-tWEvw6-bq8_ZnHcxaYdWB2yoMC99o';
 let fd=null, selDay=0, dataSource='';
+let LOC = {lat:7.88, lon:98.39, name:'Phuket, Thailand', tz:'Asia/Bangkok'};
+
+// ======== LOCATION ========
+async function searchLocation(){
+  const q = document.getElementById('loc-input').value.trim();
+  if(!q) return;
+  const btn = document.getElementById('loc-btn');
+  btn.disabled=true; btn.textContent='Searching…';
+  try {
+    const res = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?key=${GOOGLE_KEY}&address=${encodeURIComponent(q)}`);
+    const data = await res.json();
+    if(data.results && data.results.length > 0){
+      const r = data.results[0];
+      LOC.lat = r.geometry.location.lat;
+      LOC.lon = r.geometry.location.lng;
+      LOC.name = r.formatted_address;
+      // Get timezone
+      const tzRes = await fetch(`https://maps.googleapis.com/maps/api/timezone/json?key=${GOOGLE_KEY}&location=${LOC.lat},${LOC.lon}&timestamp=${Math.floor(Date.now()/1000)}`);
+      const tzData = await tzRes.json();
+      LOC.tz = tzData.timeZoneId || 'UTC';
+      document.getElementById('loc-input').value = LOC.name;
+      init();
+    } else { alert('Location not found. Try a different search.'); }
+  } catch(e){ alert('Geocoding error: '+e.message); }
+  btn.disabled=false; btn.textContent='Search';
+}
+function useMyLocation(){
+  if(!navigator.geolocation) return alert('Geolocation not supported');
+  navigator.geolocation.getCurrentPosition(async pos=>{
+    LOC.lat = pos.coords.latitude;
+    LOC.lon = pos.coords.longitude;
+    try {
+      const res = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?key=${GOOGLE_KEY}&latlng=${LOC.lat},${LOC.lon}`);
+      const data = await res.json();
+      LOC.name = data.results?.[0]?.formatted_address || `${LOC.lat.toFixed(2)}, ${LOC.lon.toFixed(2)}`;
+      const tzRes = await fetch(`https://maps.googleapis.com/maps/api/timezone/json?key=${GOOGLE_KEY}&location=${LOC.lat},${LOC.lon}&timestamp=${Math.floor(Date.now()/1000)}`);
+      const tzData = await tzRes.json();
+      LOC.tz = tzData.timeZoneId || 'UTC';
+    } catch(e){ LOC.name = `${LOC.lat.toFixed(2)}, ${LOC.lon.toFixed(2)}`; }
+    document.getElementById('loc-input').value = LOC.name;
+    init();
+  }, ()=>alert('Location access denied'));
+}
+document.getElementById('loc-input').addEventListener('keydown', e=>{ if(e.key==='Enter') searchLocation(); });
+document.getElementById('loc-input').value = LOC.name;
+
+function renderLiveStatus(){
+  const el = document.getElementById('live-status');
+  if(!fd || !fd.days.length){ el.style.display='none'; return; }
+  const d = fd.days[0];
+  const nowH = new Date().getHours();
+  const cur = d.hours[nowH] || d.hours[0];
+  const sc = sC(cur.safety);
+  const safetyLabel = cur.safety==='danger'?'DANGER':cur.safety==='caution'?'CAUTION':'SAFE';
+  el.style.display='flex';
+  el.innerHTML=`
+    <div class="ls-item"><div class="ls-dot" style="background:${sc}"></div><span class="ls-val" style="color:${sc}">${safetyLabel}</span></div>
+    <div class="ls-divider"></div>
+    <div class="ls-item"><span class="ls-temp" style="color:var(--warm)">${cur.temp.toFixed(1)}°</span><span class="ls-label">actual</span></div>
+    <div class="ls-divider"></div>
+    <div class="ls-item"><span class="ls-val" style="color:${sc}">${cur.apparent}°</span><span class="ls-label">heat index</span></div>
+    <div class="ls-divider"></div>
+    <div class="ls-item"><span class="ls-val" style="color:var(--hum)">${cur.humidity}%</span><span class="ls-label">humidity</span></div>
+    <div class="ls-divider"></div>
+    <div class="ls-item"><span class="ls-val" style="color:var(--gold)">${cur.uv}</span><span class="ls-label">UV</span></div>
+  `;
+}
 
 // ======== GOOGLE WEATHER API PARSER ========
 function parseGoogle(hourlyJson, dailyJson){
@@ -238,33 +324,33 @@ async function init(){
   // 1) Try Google Weather API (with pagination for full 7 days)
   try {
     // Fetch daily forecast
-    const dRes = await fetch(`https://weather.googleapis.com/v1/forecast/days:lookup?key=${GOOGLE_KEY}&location.latitude=7.88&location.longitude=98.39&days=7`);
+    const dRes = await fetch(`https://weather.googleapis.com/v1/forecast/days:lookup?key=${GOOGLE_KEY}&location.latitude=${LOC.lat}&location.longitude=${LOC.lon}&days=7`);
     if(!dRes.ok) throw new Error('Daily: '+dRes.status);
     const dJson = await dRes.json();
 
     // Fetch hourly with pagination
     let allHours = [];
-    let url = `https://weather.googleapis.com/v1/forecast/hours:lookup?key=${GOOGLE_KEY}&location.latitude=7.88&location.longitude=98.39&hours=168`;
+    let url = `https://weather.googleapis.com/v1/forecast/hours:lookup?key=${GOOGLE_KEY}&location.latitude=${LOC.lat}&location.longitude=${LOC.lon}&hours=168`;
     for(let page=0; page<5; page++){
       const hRes = await fetch(url);
       if(!hRes.ok) throw new Error('Hourly: '+hRes.status);
       const hJson = await hRes.json();
       if(hJson.forecastHours) allHours = allHours.concat(hJson.forecastHours);
       if(!hJson.nextPageToken) break;
-      url = `https://weather.googleapis.com/v1/forecast/hours:lookup?key=${GOOGLE_KEY}&location.latitude=7.88&location.longitude=98.39&hours=168&pageToken=${hJson.nextPageToken}`;
+      url = `https://weather.googleapis.com/v1/forecast/hours:lookup?key=${GOOGLE_KEY}&location.latitude=${LOC.lat}&location.longitude=${LOC.lon}&hours=168&pageToken=${hJson.nextPageToken}`;
     }
 
-    fd = {days: parseGoogle({forecastHours: allHours}, dJson), at: new Date().toLocaleString('en-GB',{timeZone:'Asia/Bangkok'})};
+    fd = {days: parseGoogle({forecastHours: allHours}, dJson), at: new Date().toLocaleString('en-GB',{timeZone:LOC.tz})};
     dataSource = 'google';
     return renderAll();
   } catch(e){ console.log('Google Weather failed:', e.message); }
 
   // 2) Try Open-Meteo
   try {
-    const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=7.88&longitude=98.39&hourly=temperature_2m,relative_humidity_2m,apparent_temperature,uv_index,precipitation_probability,weathercode&daily=temperature_2m_max,temperature_2m_min,uv_index_max,precipitation_sum&forecast_days=7&timezone=Asia/Bangkok');
+    const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${LOC.lat}&longitude=${LOC.lon}&hourly=temperature_2m,relative_humidity_2m,apparent_temperature,uv_index,precipitation_probability,weathercode&daily=temperature_2m_max,temperature_2m_min,uv_index_max,precipitation_sum&forecast_days=7&timezone=${encodeURIComponent(LOC.tz)}`);
     if(res.ok){
       const json = await res.json();
-      fd = {days: parseOpenMeteo(json), at: new Date().toLocaleString('en-GB',{timeZone:'Asia/Bangkok'})};
+      fd = {days: parseOpenMeteo(json), at: new Date().toLocaleString('en-GB',{timeZone:LOC.tz})};
       dataSource = 'openmeteo';
       return renderAll();
     }
@@ -282,16 +368,16 @@ function renderAll(){
   const sub = document.getElementById('fc-sub');
   if(dataSource==='google'){
     badge.className='src-badge src-google'; badge.textContent='GOOGLE AI';
-    sub.textContent=`Google Weather API · Updated ${fd.at} (Bangkok time) · AI-powered forecast`;
+    sub.textContent=`Google Weather API · ${LOC.name} · Updated ${fd.at} · AI-powered forecast`;
   } else if(dataSource==='openmeteo'){
     badge.className='src-badge src-meteo'; badge.textContent='OPEN-METEO';
-    sub.textContent=`Open-Meteo API · Updated ${fd.at} (Bangkok time)`;
+    sub.textContent=`Open-Meteo API · ${LOC.name} · Updated ${fd.at}`;
   } else {
     badge.className='src-badge src-embed'; badge.textContent='SNAPSHOT';
     sub.textContent=`Embedded snapshot · ${fd.at} · Will try live APIs when opened in browser`;
   }
   const ti=fd.days.findIndex(d=>isToday(d.date));selDay=ti>=0?ti:0;
-  rTabs();rConds();rSBar();rChart();rAvg();rActs();
+  rTabs();rConds();rSBar();rChart();rAvg();rActs();renderLiveStatus();
 }
 
 function rTabs(){
@@ -313,7 +399,7 @@ function rConds(){
     h+=`<div class="cc"><div class="cc-i">💧</div><div class="cc-v" style="color:var(--hum)">${cur.humidity}%</div><div class="cc-l">Humidity</div></div>`;
     h+=`<div class="cc"><div class="cc-i">☀️</div><div class="cc-v" style="color:var(--gold)">${cur.uv}</div><div class="cc-l">UV Index</div></div>`;
     h+=`<div class="cc"><div class="cc-i">🌧️</div><div class="cc-v">${cur.precip}%</div><div class="cc-l">Rain Chance</div></div>`;
-    h+=`<div class="cc"><div class="cc-i">👶</div><div class="cc-v" style="color:${sc}">${sE(cur.safety).split(' ')[0]}</div><div class="cc-l">Sophie: ${cur.safety.toUpperCase()}</div></div>`;
+    h+=`<div class="cc"><div class="cc-i">⚠️</div><div class="cc-v" style="color:${sc}">${sE(cur.safety).split(' ')[0]}</div><div class="cc-l">Status: ${cur.safety.toUpperCase()}</div></div>`;
   }else{
     h+=`<div class="cc"><div class="cc-i">🔆</div><div class="cc-v" style="color:var(--warm)">${Math.round(d.mx)}°</div><div class="cc-l">High</div></div>`;
     h+=`<div class="cc"><div class="cc-i">🌙</div><div class="cc-v" style="color:var(--cool)">${Math.round(d.mn)}°</div><div class="cc-l">Low</div></div>`;
@@ -350,7 +436,7 @@ window.sTipH=function(e,di,hr){
     <div class="tt-r"><span>Humidity</span><span class="v" style="color:#00d2ff">${d.humidity}%</span></div>
     <div class="tt-r"><span>UV Index</span><span class="v" style="color:#ffd700">${d.uv}</span></div>
     <div class="tt-r"><span>Rain Chance</span><span class="v">${d.precip}%</span></div>
-    <div style="margin-top:8px;font-weight:700;color:${sC(d.safety)}">${sE(d.safety)} for Sophie</div>`);
+    <div style="margin-top:8px;font-weight:700;color:${sC(d.safety)}">${sE(d.safety)}</div>`);
 };
 
 function rChart(){
@@ -394,16 +480,16 @@ function rAvg(){
 
 // ======== ACTIVITIES ========
 const acts=[
-  {t:"5:30 – 7:00 AM",n:"🌅 Sunrise Beach Walk",d:"Cool temps (~24°C), zero UV. Let Sophie feel the sand and calm waves.",s:"safe",tg:["24°C","UV 0-1","Perfect"]},
-  {t:"7:00 – 9:00 AM",n:"🏊 Pool Time & Breakfast",d:"Gentle swim in the resort pool. Apply SPF 30+. Feed Sophie in shade.",s:"safe",tg:["25-27°C","UV 2-4","SPF needed"]},
-  {t:"9:00 – 10:00 AM",n:"🐘 Temple or Market Visit",d:"Last outdoor window. Visit Wat Chalong or morning market.",s:"caution",tg:["29°C","UV 7","Shade required"]},
-  {t:"10:00 AM – 3:00 PM",n:"❄️ Indoor Activities Only",d:"Heat index 34-39°C, UV 9-12. Stay in AC: aquarium, baby spa, nap time.",s:"danger",tg:["34°C+","UV 9-12","Stay inside"]},
-  {t:"10:30 – 12:00 PM",n:"🐠 Phuket Aquarium",d:"Air-conditioned marine world — Sophie will love the colorful fish tanks.",s:"danger",tg:["Indoor","AC","Baby-friendly"]},
-  {t:"12:00 – 2:00 PM",n:"😴 Sophie's Nap + Lunch",d:"Schedule nap during peak danger hours. Thai lunch while she sleeps.",s:"danger",tg:["Indoor","Rest time"]},
-  {t:"3:00 – 4:30 PM",n:"🧘 Shaded Resort Play",d:"Heat easing but still high. Stay under shade. Cooling towel + water.",s:"caution",tg:["32°C","UV 4-7","Shade only"]},
-  {t:"4:30 – 6:30 PM",n:"🏖️ Golden Hour Beach",d:"Temps drop below 31°C. Sandcastles, splash in shallows. Best light.",s:"safe",tg:["29-31°C","UV 0-2","Great time"]},
-  {t:"6:30 – 8:30 PM",n:"🍜 Seafood Dinner & Night Market",d:"Cool evening (~27°C). Stroll Phuket Old Town, fresh seafood.",s:"safe",tg:["27°C","UV 0","Perfect"]},
-  {t:"8:30 – 9:30 PM",n:"🌙 Evening Wind-Down",d:"Gentle beach walk. Sophie's bedtime with ocean sounds.",s:"safe",tg:["26°C","Calm","Bedtime"]}
+  {t:"5:30 – 7:00 AM",n:"🌅 Sunrise Walk",d:"Coolest part of the day — ideal for outdoor activity before heat builds.",s:"safe",tg:["Cool","UV 0-1","Perfect"]},
+  {t:"7:00 – 9:00 AM",n:"🏊 Morning Pool / Exercise",d:"Comfortable temps for swimming, jogging, or outdoor breakfast.",s:"safe",tg:["Mild","UV 2-4","SPF needed"]},
+  {t:"9:00 – 10:00 AM",n:"🚶 Last Outdoor Window",d:"Heat rising — final comfortable window for markets, sightseeing, or errands.",s:"caution",tg:["Warm","Shade required"]},
+  {t:"10:00 AM – 3:00 PM",n:"❄️ Indoor Activities Only",d:"Peak heat index hours. Stay in air conditioning — malls, museums, restaurants.",s:"danger",tg:["HI 32°C+","Stay inside"]},
+  {t:"10:30 – 12:00 PM",n:"🏛️ Indoor Sightseeing",d:"Air-conditioned museums, galleries, aquariums — avoid direct sun entirely.",s:"danger",tg:["Indoor","AC"]},
+  {t:"12:00 – 2:00 PM",n:"🍽️ Lunch & Rest",d:"Hottest hours of the day. Indoor dining, rest, or quiet activities.",s:"danger",tg:["Indoor","Rest time"]},
+  {t:"3:00 – 4:30 PM",n:"🧘 Shaded Outdoor Rest",d:"Heat easing but still high. Stay under shade structures if outdoors.",s:"caution",tg:["HI ~32°C","Shade only"]},
+  {t:"4:30 – 6:30 PM",n:"🏖️ Golden Hour Activities",d:"Temps dropping — great window for beach, parks, outdoor dining.",s:"safe",tg:["Cooling","UV 0-2","Great time"]},
+  {t:"6:30 – 8:30 PM",n:"🍜 Evening Out",d:"Cool evening temps. Perfect for night markets, dinner, or strolling.",s:"safe",tg:["Cool","UV 0","Perfect"]},
+  {t:"8:30 – 10:00 PM",n:"🌙 Night Activities",d:"Comfortable temps for evening walks, rooftop bars, or stargazing.",s:"safe",tg:["Cool","Calm","Relaxing"]}
 ];
 function rActs(){document.getElementById('acts').innerHTML=acts.map(a=>`<div class="ac ${a.s}"><div class="at">${a.t}</div><div class="an">${a.n}</div><div class="ad">${a.d}</div><div class="atags">${a.tg.map(t=>`<span class="tg ${a.s==='danger'?'d':a.s==='caution'?'c':'s'}">${t}</span>`).join('')}</div></div>`).join('')}
 
