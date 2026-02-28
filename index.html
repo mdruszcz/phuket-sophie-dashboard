@@ -150,7 +150,7 @@ function sT(e,h){tip.innerHTML=h;tip.classList.add('on');tip.style.left=Math.min
 function hT(){tip.classList.remove('on')}
 window.sT=sT;window.hT=hT;
 
-function gS(hi,uv){if(hi>=33)return'danger';if(hi>=29)return'caution';return'safe'}
+function gS(hi,uv){if(hi>=32)return'danger';if(hi>=29)return'caution';return'safe'}
 function sC(s){return s==='danger'?'var(--danger)':s==='caution'?'var(--caution)':'var(--safe)'}
 function sE(s){return s==='danger'?'🔴 DANGER':s==='caution'?'🟡 CAUTION':'🟢 SAFE'}
 function fD(ds){return new Date(ds+'T00:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})}
@@ -337,8 +337,8 @@ function rSBar(){
   const f=a=>a.map(r=>r[0]===r[1]?`${r[0]}:00`:`${r[0]}:00–${r[1]+1}:00`).join(', ');
   h+=`<div class="stxt">`;
   if(R.safe.length)h+=`<strong class="s">🟢 Safe (${f(R.safe)}):</strong> HI &lt; 29°C, UV &lt; 5. Outdoor play OK.<br>`;
-  if(R.caution.length)h+=`<strong class="c">🟡 Caution (${f(R.caution)}):</strong> HI 29-33°C or UV 5-7. Shade & hydrate.<br>`;
-  if(R.danger.length)h+=`<strong class="d">🔴 Danger (${f(R.danger)}):</strong> HI ≥33°C or UV ≥8. Stay indoors per AAP.</div>`;
+  if(R.caution.length)h+=`<strong class="c">🟡 Caution (${f(R.caution)}):</strong> HI 29-32°C. Shade & hydrate.<br>`;
+  if(R.danger.length)h+=`<strong class="d">🔴 Danger (${f(R.danger)}):</strong> HI ≥32°C. Stay indoors per AAP.</div>`;
   el.innerHTML=h;
 }
 
@@ -400,7 +400,7 @@ const acts=[
   {t:"10:00 AM – 3:00 PM",n:"❄️ Indoor Activities Only",d:"Heat index 34-39°C, UV 9-12. Stay in AC: aquarium, baby spa, nap time.",s:"danger",tg:["34°C+","UV 9-12","Stay inside"]},
   {t:"10:30 – 12:00 PM",n:"🐠 Phuket Aquarium",d:"Air-conditioned marine world — Sophie will love the colorful fish tanks.",s:"danger",tg:["Indoor","AC","Baby-friendly"]},
   {t:"12:00 – 2:00 PM",n:"😴 Sophie's Nap + Lunch",d:"Schedule nap during peak danger hours. Thai lunch while she sleeps.",s:"danger",tg:["Indoor","Rest time"]},
-  {t:"3:00 – 4:30 PM",n:"🧘 Shaded Resort Play",d:"Heat easing but still high. Stay under shade. Cooling towel + water.",s:"caution",tg:["33°C","UV 4-7","Shade only"]},
+  {t:"3:00 – 4:30 PM",n:"🧘 Shaded Resort Play",d:"Heat easing but still high. Stay under shade. Cooling towel + water.",s:"caution",tg:["32°C","UV 4-7","Shade only"]},
   {t:"4:30 – 6:30 PM",n:"🏖️ Golden Hour Beach",d:"Temps drop below 31°C. Sandcastles, splash in shallows. Best light.",s:"safe",tg:["29-31°C","UV 0-2","Great time"]},
   {t:"6:30 – 8:30 PM",n:"🍜 Seafood Dinner & Night Market",d:"Cool evening (~27°C). Stroll Phuket Old Town, fresh seafood.",s:"safe",tg:["27°C","UV 0","Perfect"]},
   {t:"8:30 – 9:30 PM",n:"🌙 Evening Wind-Down",d:"Gentle beach walk. Sophie's bedtime with ocean sounds.",s:"safe",tg:["26°C","Calm","Bedtime"]}
