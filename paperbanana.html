@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PaperBanana</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,300&family=Unbounded:wght@300;400&family=Fira+Code:wght@400;500&display=swap');
+:root{--cream:#F5F0E8;--paper:#EDE8DC;--ink:#1C1C1A;--ink-muted:#4A4844;--ink-faint:#9A9590;--teal:#0F6E56;--teal-light:#E1F5EE;--teal-mid:#1D9E75;--amber:#BA7517;--amber-light:#FAEEDA;--coral:#993C1D;--coral-light:#FAECE7;--border:rgba(28,28,26,0.12);--borderS:rgba(28,28,26,0.25);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Newsreader',Georgia,serif;background:var(--cream);color:var(--ink);min-height:100vh;}
+header{border-bottom:1px solid var(--borderS);padding:1.2rem 2rem;display:flex;align-items:baseline;gap:1rem;background:var(--paper);}
+.logo{font-family:'Unbounded',sans-serif;font-weight:300;font-size:1.05rem;letter-spacing:.04em;color:var(--teal);}
+.logo span{color:var(--ink);font-weight:400;}
+.tag{font-size:.8rem;color:var(--ink-faint);font-style:italic;}
+.wrap{max-width:980px;margin:0 auto;padding:1.4rem 2rem;}
+.abar{display:flex;gap:.7rem;align-items:center;margin-bottom:1.4rem;background:var(--paper);border:1px solid var(--borderS);border-radius:6px;padding:.7rem 1rem;}
+.abar label{font-family:'Unbounded',sans-serif;font-size:.58rem;letter-spacing:.1em;color:var(--ink-muted);white-space:nowrap;}
+.abar input{flex:1;font-family:'Fira Code',monospace;font-size:.78rem;background:var(--cream);border:1px solid var(--border);border-radius:4px;padding:.42rem .7rem;color:var(--ink);outline:none;}
+.abar input:focus{border-color:var(--teal);}
+.abar select{font-family:'Fira Code',monospace;font-size:.75rem;background:var(--cream);border:1px solid var(--border);border-radius:4px;padding:.42rem .6rem;color:var(--ink);outline:none;}
+.grid{display:grid;grid-template-columns:340px 1fr;gap:1.2rem;}
+.panel{background:var(--paper);border:1px solid var(--borderS);border-radius:6px;overflow:hidden;}
+.ph{padding:.6rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.45rem;}
+.badge{font-family:'Unbounded',sans-serif;font-size:.56rem;font-weight:400;letter-spacing:.1em;color:#fff;padding:.17rem .42rem;border-radius:3px;}
+.bP{background:var(--teal);}.bS{background:var(--amber);}.bC{background:var(--coral);}.bO{background:var(--ink);}
+.ph h3{font-family:'Unbounded',sans-serif;font-size:.63rem;font-weight:300;letter-spacing:.06em;color:var(--ink-muted);}
+.pb{padding:.8rem;}
+.fl{font-family:'Unbounded',sans-serif;font-size:.56rem;letter-spacing:.1em;color:var(--ink-faint);margin-bottom:.32rem;}
+.fg{margin-bottom:.7rem;}.fg:last-child{margin-bottom:0;}
+textarea,input[type=text],select.fw{width:100%;font-family:'Newsreader',serif;font-size:.82rem;line-height:1.5;background:var(--cream);border:1px solid var(--border);border-radius:4px;padding:.48rem .68rem;color:var(--ink);resize:vertical;outline:none;}
+textarea:focus,input[type=text]:focus,select.fw:focus{border-color:var(--teal);}
+.row2{display:flex;gap:.5rem;margin-bottom:.7rem;}.row2 .fg{flex:1;margin-bottom:0;}
+.runbtn{width:100%;font-family:'Unbounded',sans-serif;font-size:.66rem;letter-spacing:.08em;background:var(--teal);color:#fff;border:none;border-radius:4px;padding:.68rem 1rem;cursor:pointer;transition:background .15s,transform .1s;margin-top:.35rem;}
+.runbtn:hover{background:var(--teal-mid);}.runbtn:active{transform:scale(.98);}.runbtn:disabled{background:var(--ink-faint);cursor:not-allowed;transform:none;}
+.outpanel{background:var(--paper);border:1px solid var(--borderS);border-radius:6px;display:flex;flex-direction:column;}
+.trace{border-bottom:1px solid var(--border);padding:.6rem .85rem;min-height:95px;max-height:195px;overflow-y:auto;background:var(--cream);}
+.tl{font-family:'Fira Code',monospace;font-size:.68rem;line-height:1.7;color:var(--ink-muted);display:flex;gap:.6rem;align-items:flex-start;}
+.tl .tts{color:var(--ink-faint);white-space:nowrap;flex-shrink:0;font-size:.63rem;}
+.tl .tlbl{font-weight:500;white-space:nowrap;flex-shrink:0;min-width:60px;}
+.tp .tlbl{color:var(--teal);}.ts2 .tlbl{color:var(--amber);}.tc .tlbl{color:var(--coral);}.tsys .tlbl{color:var(--ink-faint);}.tok .tlbl{color:var(--teal-mid);}.terr .tlbl{color:var(--coral);}
+.imgarea{flex:1;padding:1.2rem;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:370px;position:relative;}
+.imgarea img{max-width:100%;max-height:490px;border:1px solid var(--borderS);border-radius:4px;display:block;}
+.phmsg{text-align:center;color:var(--ink-faint);font-style:italic;font-size:.86rem;}
+.phform{font-family:'Fira Code',monospace;font-size:.68rem;color:var(--ink-faint);margin-top:.38rem;opacity:.55;}
+.iterbadge{position:absolute;top:.85rem;right:.85rem;font-family:'Unbounded',sans-serif;font-size:.56rem;letter-spacing:.1em;background:var(--amber-light);color:var(--amber);border:1px solid rgba(186,117,23,.25);padding:.23rem .48rem;border-radius:3px;}
+.ppre{background:var(--cream);border:1px solid var(--border);border-radius:4px;padding:.6rem;font-family:'Fira Code',monospace;font-size:.66rem;line-height:1.6;color:var(--ink-muted);max-height:145px;overflow-y:auto;margin-top:.38rem;white-space:pre-wrap;word-break:break-word;}
+.checks{display:flex;flex-direction:column;gap:.28rem;margin-top:.85rem;width:100%;max-width:500px;}
+.ci{display:flex;align-items:flex-start;gap:.42rem;font-size:.76rem;line-height:1.4;}
+.ck{flex-shrink:0;margin-top:.03rem;}.ck.pass{color:var(--teal-mid);}.ck.fail{color:var(--coral);}
+.dlbtn{font-family:'Unbounded',sans-serif;font-size:.6rem;letter-spacing:.08em;background:transparent;color:var(--teal);border:1px solid var(--teal);border-radius:4px;padding:.42rem .85rem;cursor:pointer;transition:background .15s;margin-top:.85rem;}
+.dlbtn:hover{background:var(--teal-light);}
+.spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:.32rem;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.errbox{background:var(--coral-light);border:1px solid rgba(153,60,29,.25);border-radius:4px;padding:.6rem .85rem;font-size:.78rem;color:var(--coral);line-height:1.5;max-width:480px;}
+.infobox{background:var(--amber-light);border:1px solid rgba(186,117,23,.2);border-radius:4px;padding:.6rem .85rem;font-size:.75rem;color:var(--amber);line-height:1.55;max-width:480px;margin-top:.5rem;}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Paper<span>Banana</span></div>
+  <div class="tag">multi-agent diagram synthesis &middot; Planner &rarr; Stylist &rarr; Critic &middot; Gemini 2.0 Flash image generation</div>
+</header>
+<div class="wrap">
+  <div class="abar">
+    <label>GEMINI API KEY</label>
+    <input type="password" id="apiKey" placeholder="AIza&hellip;" autocomplete="off" />
+    <label>MODEL</label>
+    <select id="modelSel">
+      <option value="gemini-3.1-flash-image-preview" selected>gemini-3.1-flash-image-preview &mdash; Nano Banana 2 (latest)</option>
+      <option value="gemini-3-pro-image-preview">gemini-3-pro-image-preview &mdash; Nano Banana Pro (highest quality)</option>
+      <option value="gemini-2.5-flash-image">gemini-2.5-flash-image &mdash; Nano Banana (stable GA)</option>
+      <option value="gemini-2.0-flash-preview-image-generation">gemini-2.0-flash-preview-image-generation &mdash; 2.0 Flash (legacy)</option>
+    </select>
+  </div>
+  <div class="grid">
+    <div style="display:flex;flex-direction:column;gap:1rem;">
+      <div class="panel">
+        <div class="ph"><span class="badge bP">P</span><h3>Source Context (S)</h3></div>
+        <div class="pb">
+          <div class="fg"><div class="fl">DIAGRAM TITLE</div>
+            <input type="text" id="title" value="Tax Gap Research Programme &mdash; Cost&ndash;Benefit Flow" /></div>
+          <div class="fg"><div class="fl">INPUT NODE (cost / resource)</div>
+            <input type="text" id="inputNode" value="Budget: &euro;5.3M / 66 ETP" /></div>
+          <div class="fg"><div class="fl">PHASES &mdash; one per line: label | description</div>
+            <textarea id="phases" rows="3">F1 (2026-2027)|Methodology & Sampling
+F2 (2027-2028)|Field Audits & Execution
+F3 (2029)|Tax Gap Modelling</textarea></div>
+          <div class="fg"><div class="fl">OUTPUT NODES &mdash; one per line: label | value</div>
+            <textarea id="outputs" rows="3">Direct Yield|8.1M EUR
+Risk Model ROI|90M EUR
+Deterrence Effect|100M EUR</textarea></div>
+          <div class="fg"><div class="fl">COMMUNICATIVE INTENT</div>
+            <textarea id="intent" rows="2">Left-to-right temporal flow: resource inputs to operational phases, terminating in systemic yield benefits.</textarea></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="ph"><span class="badge bC">C</span><h3>Critic Config</h3></div>
+        <div class="pb">
+          <div class="row2">
+            <div class="fg"><div class="fl">MAX ITERATIONS</div><input type="text" id="maxIter" value="3" /></div>
+            <div class="fg"><div class="fl">ASPECT RATIO</div>
+              <select id="aspect" class="fw">
+                <option value="16:9" selected>16:9 landscape</option>
+                <option value="4:3">4:3</option>
+                <option value="1:1">1:1 square</option>
+              </select></div>
+          </div>
+          <button class="runbtn" id="runBtn" onclick="runPipeline()">&#9654; Run PaperBanana Pipeline</button>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="ph"><span class="badge bS">S*</span><h3>Final Visualizer Prompt (P*)</h3></div>
+        <div class="pb">
+          <div class="fl">GENERATED BY STYLIST AGENT</div>
+          <div class="ppre" id="promptPreview">Awaiting pipeline run&hellip;</div>
+        </div>
+      </div>
+    </div>
+    <div class="outpanel">
+      <div class="ph"><span class="badge bO">OUT</span><h3>Pipeline Output</h3></div>
+      <div class="trace" id="trace">
+        <div class="tl tsys"><span class="tts">--:--:--</span><span class="tlbl">SYSTEM</span><span>PaperBanana ready. Add API key and press Run.</span></div>
+      </div>
+      <div class="imgarea" id="imgArea">
+        <div class="phmsg">Diagram renders here after generation</div>
+        <div class="phform">P* = VLM_style(P, G) &rarr; Gemini-img(P*) &rarr; I_t</div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+function nowts(){return new Date().toTimeString().slice(0,8);}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function addTrace(cls,lbl,msg){
+  var t=document.getElementById("trace");
+  var d=document.createElement("div");
+  d.className="tl "+cls;
+  d.innerHTML='<span class="tts">'+nowts()+'</span><span class="tlbl">'+lbl+'</span><span>'+esc(msg)+'</span>';
+  t.appendChild(d);t.scrollTop=t.scrollHeight;
+}
+
+function plannerRun(S){
+  var phases=S.phases,outputs=S.outputs;
+  var phaseCodes=phases.map(function(_,i){return String.fromCharCode(66+i);});
+  var outCodes=outputs.map(function(_,i){return String.fromCharCode(66+phases.length+i);});
+  var nodeDesc=[
+    "Node A [INPUT RESOURCES]: "+S.inputNode
+  ].concat(phases.map(function(p,i){return "Node "+phaseCodes[i]+" [PHASE "+(i+1)+"]: "+p.label+" - "+p.desc;}))
+   .concat(outputs.map(function(o,i){return "Node "+outCodes[i]+" [OUTPUT "+(i+1)+"]: "+o.label+": "+o.val;}));
+  var edgeList=["A -> B"].concat(
+    phases.slice(1).map(function(_,i){return phaseCodes[i]+" -> "+phaseCodes[i+1];}),
+    outputs.map(function(_,i){return phaseCodes[phases.length-1]+" -> "+outCodes[i];})
+  );
+  addTrace("tp","PLANNER","Nodes: "+nodeDesc.length+" | Edges: "+edgeList.join(", "));
+  return {nodeDesc:nodeDesc,edgeList:edgeList};
+}
+
+function stylistRun(S,plan){
+  addTrace("ts2","STYLIST","Composing image prompt with dual-tone palette and layout grammar...");
+  var ph=S.phases.map(function(p,i){
+    return "Chevron "+(i+1)+': label "'+p.label+'" / subtitle "'+p.desc+'"';
+  }).join("; ");
+  var op=S.outputs.map(function(o){
+    return 'Terminal rectangle: "'+o.label+'" value "'+o.val+'"';
+  }).join("; ");
+
+  var prompt=
+    'Create a clean, academic, left-to-right flowchart. White background. Minimalist flat vector graphic style. '+
+    'Monospaced sans-serif font throughout (like Courier or Consolas). No 3D, no gradients, no icons.\n\n'+
+    'TITLE at top centre: "'+S.title+'"\n\n'+
+    'LAYOUT (strict left-to-right reading order):\n\n'+
+    '1. INPUT STAGE (far left): A single parallelogram or rectangle with thick navy border (#1B3A5C fill, white text). '+
+    'Label above: "INPUT RESOURCES". Content: "'+S.inputNode+'". '+
+    'This box represents an operational COST. Its shape must differ from the output benefit boxes.\n\n'+
+    '2. PHASES (centre): '+phases_count+' chevron arrow-shapes pointing right, connected by thick arrows, all filled deep navy (#1B3A5C) with white text. '+ph+'.\n\n'+
+    '3. OUTPUT STAGE (far right): A single arrow from the last chevron fans out into '+outputs_count+' SEPARATE terminal rectangles arranged vertically. '+
+    'Each terminal rectangle: thick dark-green border and text (#1A4731). Rectangles must NOT be merged. '+op+'.\n\n'+
+    'COLOUR RULES: input + phase elements = deep navy (#1B3A5C). Output/benefit nodes = dark green (#1A4731) ONLY. '+
+    'The input cost box must be visually distinct from the green output boxes. '+
+    'The input value "'+S.inputNode+'" must NOT appear in the output section.\n\n'+
+    'TYPOGRAPHY: All text horizontal, perfectly legible, 13-16pt. No text overlaps shapes.\n\n'+
+    'SPACING: generous padding inside each box. Clear arrowheads. Wide landscape canvas.';
+
+  // inline the counts because template literals not available in all contexts
+  var phases_count=S.phases.length;
+  var outputs_count=S.outputs.length;
+  prompt=prompt.replace('phases_count',phases_count).replace('outputs_count',outputs_count);
+
+  addTrace("ts2","STYLIST","Prompt ready ("+prompt.length+" chars)");
+  return prompt;
+}
+
+function criticRun(S,prompt,iter){
+  addTrace("tc","CRITIC","Auditing P* for failure modes (iteration "+iter+")...");
+  var checks=[
+    {label:"Input cost node shape distinct from output benefit nodes",pass:prompt.indexOf("visually distinct")>-1||prompt.indexOf("shape must differ")>-1},
+    {label:S.outputs.length+" separate terminal output rectangles specified",pass:prompt.indexOf(S.outputs.length+" SEPARATE")>-1||prompt.indexOf(""+S.outputs.length+" separate")>-1},
+    {label:"Input cost value excluded from output section",pass:prompt.indexOf("must NOT appear")>-1},
+    {label:"Left-to-right flow direction specified",pass:prompt.toLowerCase().indexOf("left-to-right")>-1},
+    {label:"All "+S.phases.length+" phases present in prompt",pass:S.phases.filter(function(p){return prompt.indexOf(p.label)>-1;}).length===S.phases.length}
+  ];
+  var allPass=checks.every(function(c){return c.pass;});
+  var failed=checks.filter(function(c){return !c.pass;});
+  var penalty="";
+  if(!allPass){
+    penalty="CORRECTIONS FOR NEXT ITERATION: "+failed.map(function(c){
+      if(c.label.indexOf("shape distinct")>-1)
+        return "Use a DIAMOND or PARALLELOGRAM for the input cost box so it looks nothing like the rectangular green output nodes.";
+      if(c.label.indexOf("separate")>-1)
+        return "The "+S.outputs.length+" output benefit nodes must be drawn as "+S.outputs.length+" visually separate rectangles, never merged.";
+      if(c.label.indexOf("excluded")>-1)
+        return "Do not list the input cost value among the output benefits.";
+      return "Ensure: "+c.label+".";
+    }).join(" ");
+  }
+  addTrace(allPass?"tok":"tc",allPass?"OK":"CRITIC",checks.filter(function(c){return c.pass;}).length+"/"+checks.length+" checks passed"+(allPass?" — accepted":""));
+  return {passed:allPass,checks:checks,penalty:penalty};
+}
+
+async function geminiPost(url,body){
+  var PROXIES=[
+    function(u){return u;},
+    function(u){return "https://corsproxy.io/?url="+encodeURIComponent(u);},
+    function(u){return "https://api.allorigins.win/raw?url="+encodeURIComponent(u);}
+  ];
+  var lastErr=null;
+  for(var i=0;i<PROXIES.length;i++){
+    var target=PROXIES[i](url);
+    var label=i===0?"direct":i===1?"corsproxy.io":"allorigins";
+    try{
+      var res=await fetch(target,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+      if(!res.ok){
+        var err=await res.json().catch(function(){return {};});
+        var msg=(err&&err.error&&err.error.message)||("HTTP "+res.status);
+        if(res.status===400||res.status===401||res.status===403){throw new Error(msg);}
+        lastErr=new Error("["+label+"] "+msg);
+        continue;
+      }
+      if(i>0){addTrace("tsys","SYSTEM","Connected via proxy: "+label);}
+      return await res.json();
+    }catch(e){
+      if(e.message&&(e.message.indexOf("HTTP 40")>-1||e.message.indexOf("HTTP 401")>-1)){throw e;}
+      lastErr=new Error("["+label+"] "+(e.message||"fetch failed"));
+    }
+  }
+  throw new Error("CORS block on all routes. Use a local server or browser extension to allow cross-origin requests. Last error: "+(lastErr&&lastErr.message||"unknown"));
+}
+
+async function callGeminiImage(key,model,prompt){
+  var url="https://generativelanguage.googleapis.com/v1beta/models/"+model+":generateContent?key="+key;
+  var body={
+    contents:[{role:"user",parts:[{text:prompt}]}],
+    generationConfig:{responseModalities:["TEXT","IMAGE"]}
+  };
+  var data=await geminiPost(url,body);
+  var parts=(data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts)||[];
+  var imgPart=parts.find(function(p){return p.inlineData;});
+  if(!imgPart){
+    var txt=parts.find(function(p){return p.text;});
+    throw new Error("No image in response. Model replied: \"+(txt&&txt.text||JSON.stringify(data).slice(0,200))+"\"");
+  }
+  var mime=imgPart.inlineData.mimeType||"image/png";
+  return "data:"+mime+";base64,"+imgPart.inlineData.data;
+}
+
+async function runPipeline(){
+  var key=document.getElementById("apiKey").value.trim();
+  if(!key){alert("Paste your Gemini API key first.");return;}
+  var btn=document.getElementById("runBtn");
+  btn.disabled=true;
+  btn.innerHTML='<span class="spinner"></span>Running\u2026';
+  document.getElementById("imgArea").innerHTML="";
+
+  var S={
+    title:document.getElementById("title").value.trim(),
+    inputNode:document.getElementById("inputNode").value.trim(),
+    phases:document.getElementById("phases").value.trim().split("\n").map(function(l){
+      var p=l.split("|");return{label:(p[0]||"").trim(),desc:(p[1]||"").trim()};
+    }),
+    outputs:document.getElementById("outputs").value.trim().split("\n").map(function(l){
+      var p=l.split("|");return{label:(p[0]||"").trim(),val:(p[1]||"").trim()};
+    }),
+    intent:document.getElementById("intent").value.trim()
+  };
+  var maxIter=Math.max(1,Math.min(5,parseInt(document.getElementById("maxIter").value)||3));
+  var aspect=document.getElementById("aspect").value;
+  var model=document.getElementById("modelSel").value;
+
+  addTrace("tsys","SYSTEM","Pipeline started — "+model+" | max iterations: "+maxIter);
+
+  try{
+    var plan=plannerRun(S);
+    var basePrompt=stylistRun(S,plan);
+    document.getElementById("promptPreview").textContent=basePrompt;
+
+    var penaltyClause="";
+    var finalUrl=null;
+
+    for(var i=0;i<maxIter;i++){
+      var iter=i+1;
+      var fullPrompt=basePrompt+(penaltyClause?"\n\n"+penaltyClause:"");
+      if(penaltyClause)document.getElementById("promptPreview").textContent=fullPrompt;
+      addTrace("tsys","SYSTEM","Iteration "+iter+"/"+maxIter+" — calling Gemini image API\u2026");
+      var imgUrl;
+      try{
+        imgUrl=await callGeminiImage(key,model,fullPrompt,aspect);
+      }catch(e){
+        addTrace("terr","ERROR",e.message);
+        showError(e.message);
+        break;
+      }
+      finalUrl=imgUrl;
+      showImage(imgUrl,iter);
+      addTrace("tok","OK","Image received (iteration "+iter+")");
+      var crit=criticRun(S,fullPrompt,iter);
+      renderChecks(crit.checks,iter);
+      if(crit.passed){addTrace("tok","OK","All checks passed — pipeline complete \u2713");break;}
+      penaltyClause=crit.penalty;
+      if(i<maxIter-1)addTrace("tc","CRITIC","Penalty appended for next iteration.");
+      else addTrace("tsys","SYSTEM","Max iterations reached. Best output shown.");
+    }
+    if(finalUrl)addDlBtn(finalUrl);
+  }catch(e){
+    addTrace("terr","ERROR",e.message);
+  }finally{
+    btn.disabled=false;
+    btn.innerHTML="&#9654; Run PaperBanana Pipeline";
+  }
+}
+
+function showImage(url,iter){
+  var a=document.getElementById("imgArea");
+  a.innerHTML='<div class="iterbadge">ITERATION '+iter+'</div><img src="'+url+'" alt="diagram" /><div class="checks" id="ck-'+iter+'"></div>';
+}
+function renderChecks(checks,iter){
+  var el=document.getElementById("ck-"+iter);
+  if(!el)return;
+  el.innerHTML=checks.map(function(c){
+    return '<div class="ci"><span class="ck '+(c.pass?"pass":"fail")+'">'+(c.pass?"\u2713":"\u2717")+'</span><span>'+esc(c.label)+'</span></div>';
+  }).join("");
+}
+function showError(msg){
+  document.getElementById("imgArea").innerHTML=
+    '<div class="errbox"><strong>Generation error</strong><br>'+esc(msg)+'</div>'+
+    '<div class="infobox">'+
+    '<strong>Common causes:</strong><br>'+
+    '&bull; <strong>CORS block</strong>: app tried direct + corsproxy.io + allorigins &mdash; all failed. Save the HTML file locally and open it with a local server (<code>npx serve .</code>), or install the <a href="https://chrome.google.com/webstore/detail/allow-cors-access-control/lhobafahddgcelffkeicbaginigeejlf" style="color:inherit">Allow CORS</a> browser extension<br>'+
+    '&bull; <strong>Billing</strong>: preview image models require billing enabled in Google AI Studio<br>'+
+    '&bull; <strong>Region</strong>: image generation blocked in some regions &mdash; try a US/EU VPN<br>'+
+    '&bull; Try a different model in the dropdown (gemini-2.5-flash-image is stable GA)'+
+    '</div>';
+}
+function addDlBtn(url){
+  var btn=document.createElement("button");
+  btn.className="dlbtn";btn.textContent="\u2193 Download Diagram";
+  btn.onclick=function(){var a=document.createElement("a");a.href=url;a.download="paperbanana-diagram.png";a.click();};
+  document.getElementById("imgArea").appendChild(btn);
+}
+</script>
+</body>
+</html>
